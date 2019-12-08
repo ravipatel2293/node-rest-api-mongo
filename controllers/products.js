@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Product = require("../models/product")
-
+const logger = require("../utils/logger")
 exports.getAllProduct = (req, res, next) => {
   Product.find()
     .select('_id name price')
@@ -10,6 +10,7 @@ exports.getAllProduct = (req, res, next) => {
         count: docs.length,
         products: docs
       }
+      logger.info("All products fetched successfully","Product controller: getAllProduct")
       res.status(200).send({
         success: true,
         status: 200,
