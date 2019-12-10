@@ -1,28 +1,23 @@
 const mongoose = require("mongoose");
 const Product = require("../models/product")
 const logger = require("../utils/logger")
+const response = require("../utils/response")
+
+
 exports.getAllProduct = (req, res, next) => {
   Product.find()
     .select('_id name price')
     .exec()
     .then((docs) => {
-      const response = {
+      logger.info("All products fetched successfully", "Product controller: getAllProduct")
+      return response.json(res, {
         count: docs.length,
         products: docs
-      }
-      logger.info("All products fetched successfully","Product controller: getAllProduct")
-      res.status(200).send({
-        success: true,
-        status: 200,
-        message: "product GET api is called",
-        payload: response
       })
     })
     .catch((err) => {
-      console.log(err)
-      res.status(500).send({
-        error: err
-      })
+      logger.error(`Error occurred: ${err}`, "Database Product controller: getAllProduct")
+      return response.json(res, null, response.SERVER_ERROR, err.message)
     })
 }
 
@@ -36,17 +31,12 @@ exports.createProduct = (req, res, next) => {
   });
   // Save the product and return the response
   product.save().then((result) => {
-      res.status(201).json({
-        message: "Created product successfully",
-        createdProduct: {
-          id: result._id
-        }
-      })
+      logger.info("New Product is created successfully", "Product controller:createProduct")
+      return response.json(res, result)
     })
     .catch((err) => {
-      res.status(500).json({
-        error: err
-      });
+      logger.error(`Error occurred: ${err}`, "Product controller: createProduct");
+      return response.json(res, null, response.SERVER_ERROR, err.message);
     })
 }
 
@@ -54,85 +44,68 @@ exports.getProduct = (req, res, next) => {
   const productId = req.params.productId
   // if given id not matched valid regex then return bad request
   if (!mongoose.Types.ObjectId.isValid(productId)) {
-    res.status(400)
-      .send({
-        success: false,
-        status: 404,
-        message: "No valid entry found for provided ID",
-        payload: {}
-      });
+    logger.info(`Productid is not valid --> ${productId}`);
+    return response.json(res, null, response.BAD_REQUEST, "Given product id is not valid.");
   }
   Product.findById(productId)
     .select('_id name price')
     .exec()
     .then((doc) => {
       if (doc) {
-        res.status(200).send({
-          success: true,
-          status: 200,
-          message: "product GET by product id api is called",
-          payload: doc
-        });
+        logger.info("Product by id fetched successfully", "Product controller: getProduct");
+        return response.json(res, doc);
       } else {
-        res.status(404)
-          .send({
-            success: false,
-            status: 404,
-            message: "No valid entry found for provided ID",
-            payload: doc
-          });
+        logger.error(`Product not found for: ${productId}`, "Product controller: getProduct");
+        return response.json(res, null, response.NOT_FOUND);
       }
 
     })
     .catch((err) => {
-      console.log(err)
-      res.status(500).send({
-        error: err
-      })
+      logger.error(`Error occurred: ${err}`, "Product controller: getProduct");
+      return response.json(res, null, response.SERVER_ERROR, err.message);
     })
 }
 
 exports.updateProduct = (req, res, next) => {
   const id = req.params.productId;
-
+  // if given id not matched valid regex then return bad request
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    logger.info(`Productid is not valid --> ${id}`, "Product controller: updateProduct");
+    return response.json(res, null, response.BAD_REQUEST, "Given product id is not valid.");
+  }
   const updateOps = {};
   for (const key in req.body) {
     updateOps[key] = req.body[key];
   }
-  Product.update({
-      _id: id
-    }, {
-      $set: updateOps
-    })
-    .exec()
-    .then(result => {
-      res.status(200).send({
-        message: "Product updated",
-      });
-    })
-    .catch(err => {
-      console.log(err);
-      res.status(500).send({
-        error: err
-      });
-    });
+  Product.findOneAndUpdate({
+    _id: id
+  }, updateOps, {
+    new: true
+  }).exec().then((result) => {
+    logger.info("Product details is updated successfully", "Product controller: updateProduct");
+    return response.json(res, result);
+  }).catch(() => {
+    logger.error(`Error occurred: ${err}`, "Product controller: updateProduct");
+    return response.json(res, null, response.SERVER_ERROR, err.message);
+  })
 }
 
 exports.deleteProduct = (req, res, next) => {
   const id = req.params.productId;
+  // if given id not matched valid regex then return bad request
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    logger.info(`Productid is not valid --> ${id}`, "Product controller: deleteProduct");
+    return response.json(res, null, response.BAD_REQUEST, "Given product id is not valid.");
+  }
   Product.remove({
       _id: id
     })
     .exec()
     .then(result => {
-      res.status(200).send({
-        message: "Product deleted",
-      });
+      return response.json(res, null)
     })
     .catch(err => {
-      console.log(err);
-      res.status(500).send({
-        error: err
-      });
+      logger.error(`Error occurred: ${err}`, "Product controller: deleteProduct");
+      return response.json(res, null, response.SERVER_ERROR, err.message);
     });
 }
