@@ -41,6 +41,7 @@ exports.createProduct = (req, res, next) => {
 }
 
 exports.getProduct = (req, res, next) => {
+  console.log("req.userData",req.userData)
   const productId = req.params.productId
   // if given id not matched valid regex then return bad request
   if (!mongoose.Types.ObjectId.isValid(productId)) {

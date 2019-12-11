@@ -2,8 +2,10 @@ const express = require("express");
 
 const app = express()
 
-const productsRoutes = require('./routes/products')
-const ordersRoutes = require('./routes/orders');
+const productsRoutes = require('./api/routes/products')
+const ordersRoutes = require('./api/routes/orders');
+const userRoutes = require('./api/routes/user');
+
 const mongoose = require('mongoose');
 const bodyParser = require("body-parser");
 const morgan = require('morgan');
@@ -53,6 +55,7 @@ app.use(morgan('dev'))
 
 app.use('/products',productsRoutes)
 app.use('/orders',ordersRoutes)
+app.use('/user',userRoutes)
 
 
 
