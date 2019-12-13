@@ -5,6 +5,7 @@ const app = express()
 const productsRoutes = require('./api/routes/products')
 const ordersRoutes = require('./api/routes/orders');
 const userRoutes = require('./api/routes/user');
+const shopifyRoutes = require("./api/routes/shopify");
 
 const mongoose = require('mongoose');
 const bodyParser = require("body-parser");
@@ -14,15 +15,14 @@ const morgan = require('morgan');
  * //TODO--Ravi We can move password to env file later
  */
 mongoose.connect(
-  "mongodb+srv://ravipatel:ravipatel@cluster0-yhgnw.mongodb.net/test?retryWrites=true&w=majority",
-  {
+  "mongodb+srv://ravipatel:ravipatel@cluster0-yhgnw.mongodb.net/test?retryWrites=true&w=majority", {
     useNewUrlParser: true,
     useUnifiedTopology: true
   }
 );
 mongoose.Promise = global.Promise;
 setTimeout(() => {
-  console.log("mongoose connection status: ",mongoose.connection.readyState);
+  console.log("mongoose connection status: ", mongoose.connection.readyState);
 }, 2000);
 
 
@@ -31,7 +31,9 @@ app.use('/uploads', express.static('uploads'));
 /**
  * Use body-parser as middleware
  */
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({
+  extended: false
+}));
 app.use(bodyParser.json());
 
 /**
@@ -53,9 +55,10 @@ app.use((req, res, next) => {
 // Logging the request
 app.use(morgan('dev'))
 
-app.use('/products',productsRoutes)
-app.use('/orders',ordersRoutes)
-app.use('/user',userRoutes)
+app.use('/products', productsRoutes)
+app.use('/orders', ordersRoutes)
+app.use('/user', userRoutes)
+app.use('/shopify', shopifyRoutes)
 
 
 
@@ -69,9 +72,9 @@ app.use((req, res, next) => {
 app.use((error, req, res, next) => {
   res.status(error.status || 500);
   res.json({
-      error: {
-          message: error.message
-      }
+    error: {
+      message: error.message
+    }
   });
 });
 
